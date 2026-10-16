@@ -1,0 +1,20 @@
+name: Build AfroVibe APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Télécharger le code
+        uses: actions/checkout@v4
+
+      - name: Vérifier les fichiers
+        run: |
+          echo "Préparation de la compilation AfroVibe"
+          ls -la
+
+      - name: Message
+        run: echo "Le dépôt est prêt pour la configuration Flutter"
