@@ -8,13 +8,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Télécharger le code
+      - name: Recuperer le code
         uses: actions/checkout@v4
 
-      - name: Vérifier les fichiers
-        run: |
-          echo "Préparation de la compilation AfroVibe"
-          ls -la
+      - name: Installer Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
 
-      - name: Message
-        run: echo "Le dépôt est prêt pour la configuration Flutter"
+      - name: Creer la configuration Android
+        run: flutter create --platforms=android .
+
+      - name: Installer les dependances
+        run: flutter pub get
+
+      - name: Construire l'APK
+        run: flutter build apk --release
+
+      - name: Recuperer l'APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AfroVibe-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
