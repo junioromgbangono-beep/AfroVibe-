@@ -6,10 +6,12 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Recuperer le code
         uses: actions/checkout@v4
@@ -25,11 +27,26 @@ jobs:
       - name: Installer les dependances
         run: flutter pub get
 
+      - name: Verifier Flutter
+        run: flutter doctor -v
+
       - name: Construire l'APK
-        run: flutter build apk --release
+        run: flutter build apk --release --verbose
+
+      - name: Conserver les journaux de compilation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: journaux-afrovibe
+          path: |
+            build/
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Recuperer l'APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: AfroVibe-APK
           path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
