@@ -12,6 +12,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Recuperer le code
         uses: actions/checkout@v4
@@ -30,8 +31,20 @@ jobs:
       - name: Verifier Flutter
         run: flutter doctor -v
 
-      - name: Construire l'APK
-        run: flutter build apk --release --verbose
+      - name: Construire l'APK et afficher l'erreur
+        shell: bash
+        run: |
+          set +e
+          flutter build apk --release --verbose > build-log.txt 2>&1
+          RESULT=$?
+
+          echo "========== ERREURS IMPORTANTES =========="
+          grep -n -E -B 5 -A 15 'What went wrong|FAILURE: Build failed|Caused by:|Could not|error:|e: ' build-log.txt | tail -n 120 || true
+
+          echo "========== FIN DU JOURNAL =========="
+          tail -n 80 build-log.txt
+
+          exit "$RESULT"
 
       - name: Conserver les journaux de compilation
         if: always()
@@ -40,6 +53,7 @@ jobs:
           name: journaux-afrovibe
           path: |
             build/
+            build-log.txt
           if-no-files-found: ignore
           retention-days: 7
 
