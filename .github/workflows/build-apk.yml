@@ -17,6 +17,12 @@ jobs:
       - name: Recuperer le code
         uses: actions/checkout@v4
 
+      - name: Installer Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
       - name: Installer Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -28,8 +34,13 @@ jobs:
       - name: Installer les dependances
         run: flutter pub get
 
-      - name: Verifier Flutter
-        run: flutter doctor -v
+      - name: Verifier la configuration Android
+        shell: bash
+        run: |
+          echo "===== SETTINGS GRADLE ====="
+          cat android/settings.gradle.kts
+          echo "===== BUILD GRADLE ====="
+          cat android/build.gradle.kts
 
       - name: Construire l'APK et afficher l'erreur
         shell: bash
@@ -38,22 +49,24 @@ jobs:
           flutter build apk --release --verbose > build-log.txt 2>&1
           RESULT=$?
 
-          echo "========== ERREURS IMPORTANTES =========="
-          grep -n -E -B 5 -A 15 'What went wrong|FAILURE: Build failed|Caused by:|Could not|error:|e: ' build-log.txt | tail -n 120 || true
+          echo "===== ERREURS IMPORTANTES ====="
+          grep -n -E -B 5 -A 15 \
+            'What went wrong|FAILURE: Build failed|Caused by:|Could not|Execution failed|error:' \
+            build-log.txt | tail -n 150 || true
 
-          echo "========== FIN DU JOURNAL =========="
-          tail -n 80 build-log.txt
+          echo "===== FIN DU JOURNAL ====="
+          tail -n 100 build-log.txt
 
           exit "$RESULT"
 
-      - name: Conserver les journaux de compilation
+      - name: Conserver les journaux
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: journaux-afrovibe
           path: |
-            build/
             build-log.txt
+            build/
           if-no-files-found: ignore
           retention-days: 7
 
